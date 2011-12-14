@@ -11,8 +11,9 @@
 @protocol PFPageViewDataSource;
 @protocol PFPageViewDelegate;
 
-@interface PFPageView : UIView {
-    
+@interface PFPageView : UIView <UIScrollViewDelegate> {
+    UIScrollView *rootScrollView;
+    NSMutableArray *views;
 }
 
 @property (nonatomic, assign) id <PFPageViewDataSource> dataSource;
@@ -22,8 +23,8 @@
 
 
 @protocol PFPageViewDataSource <NSObject>
-- (NSInteger)pageView:(PFPageView *)pageView numberOfPages:(UIView *)pagingView;
-- (UIView *)pageView:(PFPageView *)pageView viewForPage:(UIView *)newView atIndex:(NSInteger)index;
+- (NSInteger)numberOfPagesInPageView:(PFPageView *)pageView;
+- (UIView *)pageView:(PFPageView *)pageView atIndex:(NSInteger)index;
 @end
 
 @protocol PFPageViewDelegate <NSObject>
