@@ -19,6 +19,8 @@
 @property (nonatomic, assign) id <PFPageViewDataSource> dataSource;
 @property (nonatomic, assign) id <PFPageViewDelegate> delegate;
 
+- (void)startAtPageIndex:(NSInteger)pageIndex;
+
 @end
 
 
