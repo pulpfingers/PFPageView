@@ -10,14 +10,17 @@
 
 @interface PFPageView (Private)
 - (void)unloadScrollViewAtIndex:(NSInteger)index; 
-- (void)loadView:(UIView *)newView atIndex:(NSInteger)index;
+- (void)loadViewAtIndex:(NSInteger)index;
 - (NSInteger)visiblePage;
+- (CGSize)screenSize;
+- (void)didRotate;
+- (void)showPageAtIndex:(NSInteger)index;
 @end
 
 @implementation PFPageView
 
-@synthesize pageViewDelegate;
-@synthesize pageViewDataSource;
+@synthesize delegate;
+@synthesize dataSource;
 @synthesize pageIndex;
 
 - (id)initWithFrame:(CGRect)frame
@@ -26,43 +29,53 @@
     if (self) {
         // Initialization code
         views = [[NSMutableArray alloc] init];
-        //[self setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
-        //[self setPagingEnabled:YES];
-        [self setDelegate:self];
-        [self setUserInteractionEnabled:YES];
-        [self setBackgroundColor:[UIColor redColor]];
+        pageScrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
+        [pageScrollView setPagingEnabled:YES];
+        [pageScrollView setDelegate:self];
+        [pageScrollView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
+        [pageScrollView setShowsHorizontalScrollIndicator:NO];
+        [pageScrollView setShowsVerticalScrollIndicator:NO];
+        [self addSubview:pageScrollView];
+        
+        //[self setBackgroundColor:[UIColor redColor]];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didRotate) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
+        previousPageIndex = -1;
     }
     return self;
 }
 
+- (void)didRotate {
+    NSLog(@"PreviousPage => %i", previousPageIndex);
+    [self setPageIndex:previousPageIndex];
+    [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
+}
+
 - (void)setDataSource:(id<PFPageViewDataSource>)newDataSource {
-    pageViewDataSource = newDataSource;
+
+    dataSource = newDataSource;
+    pageCount = [dataSource numberOfPagesInPageView:self];
     
-    for (unsigned i = 0; i < [pageViewDataSource numberOfPagesInPageView:self]; i++) {
+    for (unsigned i = 0; i < pageCount; i++) {
         [views addObject:[NSNull null]];
     }
-        
-    [self setContentSize:CGSizeMake([pageViewDataSource numberOfPagesInPageView:self] * 320, 480)];
+    
+    [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
+}
+
+- (CGSize)screenSize {
+    if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
+        return CGSizeMake(320.f, 480.0f);
+    } else {
+        return CGSizeMake(480.0f, 320.f);
+    }
 }
 
 - (void)setPageIndex:(NSInteger)newPageIndex {
     
-    pageIndex = newPageIndex;
-    
-#warning Toute la partie taille de l'écran est à factoriser
-    CGFloat screenWidth;
-    CGFloat screenHeight;
-    
-    if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
-        screenWidth = 320.0f;
-        screenHeight = 480.0f;        
-    } else {
-        screenWidth = 480.0f;
-        screenHeight = 320.0f;
-    }
-    
-    [self loadView:[self.pageViewDataSource pageView:self atIndex:pageIndex] atIndex:pageIndex];
-    [self scrollRectToVisible:CGRectMake(320.0 * pageIndex, 0.0, screenWidth, screenHeight) animated:NO];
+    [self showPageAtIndex:newPageIndex];
+    [pageScrollView scrollRectToVisible:CGRectMake(self.screenSize.width * newPageIndex, 0.0, self.screenSize.width, self.screenSize.height) animated:NO];
+
 }
 
 - (NSInteger)pageIndex {
@@ -74,7 +87,7 @@
         screenWidth = 480.0f;
     }
     
-    int index = floor((self.contentOffset.x - screenWidth / 2) / screenWidth) + 1;
+    int index = floor((pageScrollView.contentOffset.x - screenWidth / 2) / screenWidth) + 1;
     return index;
 }
 
@@ -94,7 +107,7 @@
 	[views replaceObjectAtIndex:index withObject:[NSNull null]];
 }
 
-- (void)loadView:(UIView *)newView atIndex:(NSInteger)index {
+- (void)loadViewAtIndex:(NSInteger)index {
 
 	if (index < 0) return;
     if (index >= [views count]) return;
@@ -102,48 +115,77 @@
     UIView *currentView = [views objectAtIndex:index];
     
     if ((NSNull *)currentView == [NSNull null]) {
-        [views replaceObjectAtIndex:index withObject:newView];
+        [views replaceObjectAtIndex:index withObject:[self.dataSource pageView:self atIndex:index]];
+        currentView = [views objectAtIndex:index];
     }
     
 	CGRect frame = self.bounds;		
 	frame.origin.x = frame.size.width * index;
 	frame.origin.y = 0;
-	newView.frame = frame;
+	currentView.frame = frame;
 	
-    if (newView.superview == nil) {
-		[self addSubview:newView];
+    if (currentView.superview != pageScrollView) {
+		[pageScrollView addSubview:currentView];
 	}
 }
 
 #pragma mark -
 #pragma ScrollView delegate methods
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    [self loadViewAtIndex:[self pageIndex]];
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {    
+    int index = [self pageIndex];    
+    [self showPageAtIndex:index];
+}
+
+- (void)showPageAtIndex:(NSInteger)index {
+    // Unload page -2
+    [self unloadScrollViewAtIndex:index - 2];
     
-    int index = [self pageIndex];
+    [self loadViewAtIndex:index - 1];    
+    [self loadViewAtIndex:index];
+    [self loadViewAtIndex:index + 1];        
     
-    if(index - 2 >=0)[self unloadScrollViewAtIndex:index - 2];
-    if(index - 1 >=0)[self loadView:[self.pageViewDataSource pageView:self atIndex:index - 1] atIndex:index - 1];
-    
-    if(index < [self.pageViewDataSource numberOfPagesInPageView:self]) {
-        [self loadView:[self.pageViewDataSource pageView:self atIndex:index] atIndex:index];
-    }
-    
-    if(index + 1 < [self.pageViewDataSource numberOfPagesInPageView:self]) {
-        [self loadView:[self.pageViewDataSource pageView:self atIndex:index + 1] atIndex:index + 1];
-    }
-    
-    if(index + 2 < [self.pageViewDataSource numberOfPagesInPageView:self]) {
-        [self unloadScrollViewAtIndex:index + 2];
-    }
+    [self unloadScrollViewAtIndex:index + 2];
     
     // Send didScrollAtIndex 
-    if([self.pageViewDelegate respondsToSelector:@selector(pageView:didScrollAtIndex:)]) {
-        [self.pageViewDelegate pageView:self didScrollAtIndex:index];
+    if([self.delegate respondsToSelector:@selector(pageView:didScrollAtIndex:)]) {
+        [self.delegate pageView:self didScrollAtIndex:index];
     }
+    
+    previousPageIndex = index;
+
+    [self insertSubview:[views objectAtIndex:index] aboveSubview:pageScrollView];
+    [[views objectAtIndex:index] setFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
+}
+
+/*
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    //[super touchesBegan:touches withEvent:event];
+    
+    [pageScrollView setContentSize:CGSizeMake(pageCount * self.screenSize.width, self.screenSize.height)];
+    NSLog(@"%f", pageCount * self.screenSize.width);
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    [super touchesEnded:touches withEvent:event];
+    
+    [pageScrollView setContentSize:CGSizeMake(self.screenSize.width, self.screenSize.height)];
+    [pageScrollView scrollRectToVisible:CGRectMake(self.screenSize.width * pageIndex, 0.0, self.screenSize.width, self.screenSize.height) animated:NO];
+}
+*/
+
+- (void)removeFromSuperview {
+    [super removeFromSuperview];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)dealloc {
+    NSLog(@"DEALLOC");
+    [pageScrollView release];
     [views release];
     [super dealloc];
 }

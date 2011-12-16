@@ -11,12 +11,15 @@
 @protocol PFPageViewDataSource;
 @protocol PFPageViewDelegate;
  
-@interface PFPageView : UIScrollView <UIScrollViewDelegate>{
+@interface PFPageView : UIView <UIScrollViewDelegate> {
     NSMutableArray *views;
+    NSInteger pageCount;
+    UIScrollView *pageScrollView;
+    NSInteger previousPageIndex;
 }
 
-@property (nonatomic, assign) id <PFPageViewDataSource> pageViewDataSource;
-@property (nonatomic, assign) id <PFPageViewDelegate> pageViewDelegate;
+@property (nonatomic, assign) id <PFPageViewDataSource> dataSource;
+@property (nonatomic, assign) id <PFPageViewDelegate> delegate;
 @property (nonatomic, assign) NSInteger pageIndex;
 @end
 
