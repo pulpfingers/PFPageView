@@ -46,7 +46,6 @@
 }
 
 - (void)didRotate {
-    NSLog(@"PreviousPage => %i", previousPageIndex);
     [self setPageIndex:previousPageIndex];
     [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
 }
@@ -162,29 +161,12 @@
     [[views objectAtIndex:index] setFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
 }
 
-/*
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    //[super touchesBegan:touches withEvent:event];
-    
-    [pageScrollView setContentSize:CGSizeMake(pageCount * self.screenSize.width, self.screenSize.height)];
-    NSLog(@"%f", pageCount * self.screenSize.width);
-}
-
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    [super touchesEnded:touches withEvent:event];
-    
-    [pageScrollView setContentSize:CGSizeMake(self.screenSize.width, self.screenSize.height)];
-    [pageScrollView scrollRectToVisible:CGRectMake(self.screenSize.width * pageIndex, 0.0, self.screenSize.width, self.screenSize.height) animated:NO];
-}
-*/
-
 - (void)removeFromSuperview {
     [super removeFromSuperview];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)dealloc {
-    NSLog(@"DEALLOC");
     [pageScrollView release];
     [views release];
     [super dealloc];
