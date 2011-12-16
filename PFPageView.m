@@ -39,15 +39,21 @@
         
         //[self setBackgroundColor:[UIColor redColor]];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didRotate) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
-        previousPageIndex = -1;
+        //[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didRotate) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
+        previousPageIndex = 0;
     }
     return self;
 }
 
-- (void)didRotate {
-    [self setPageIndex:previousPageIndex];
+- (void)layoutSubviews {
+    if(!pageScrollView.isDragging) {
+    NSLog(@"LS WIDTH => %f", self.frame.size.width);
+    [self showPageAtIndex:previousPageIndex];
+
+    [pageScrollView setFrame:self.bounds];
     [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
+    [pageScrollView scrollRectToVisible:CGRectMake(self.bounds.size.width * previousPageIndex, 0.0, self.bounds.size.width, self.bounds.size.height) animated:NO];
+    }
 }
 
 - (void)setDataSource:(id<PFPageViewDataSource>)newDataSource {
@@ -57,36 +63,16 @@
     
     for (unsigned i = 0; i < pageCount; i++) {
         [views addObject:[NSNull null]];
-    }
-    
-    [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
-}
-
-- (CGSize)screenSize {
-    if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
-        return CGSizeMake(320.f, 480.0f);
-    } else {
-        return CGSizeMake(480.0f, 320.f);
-    }
+    }    
 }
 
 - (void)setPageIndex:(NSInteger)newPageIndex {
-    
-    [self showPageAtIndex:newPageIndex];
-    [pageScrollView scrollRectToVisible:CGRectMake(self.screenSize.width * newPageIndex, 0.0, self.screenSize.width, self.screenSize.height) animated:NO];
+    previousPageIndex = newPageIndex;
 
 }
 
-- (NSInteger)pageIndex {
-    CGFloat screenWidth;
-    
-    if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
-        screenWidth = 320.0f;
-    } else {
-        screenWidth = 480.0f;
-    }
-    
-    int index = floor((pageScrollView.contentOffset.x - screenWidth / 2) / screenWidth) + 1;
+- (NSInteger)pageIndex {    
+    int index = floor((pageScrollView.contentOffset.x - self.bounds.size.width / 2) / self.bounds.size.width) + 1;
     return index;
 }
 
@@ -122,18 +108,14 @@
 	frame.origin.x = frame.size.width * index;
 	frame.origin.y = 0;
 	currentView.frame = frame;
-	
-    if (currentView.superview != pageScrollView) {
+
+    if (currentView.superview == nil) {
 		[pageScrollView addSubview:currentView];
 	}
 }
 
 #pragma mark -
 #pragma ScrollView delegate methods
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    [self loadViewAtIndex:[self pageIndex]];
-
-}
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {    
     int index = [self pageIndex];    
@@ -157,14 +139,14 @@
     
     previousPageIndex = index;
 
-    [self insertSubview:[views objectAtIndex:index] aboveSubview:pageScrollView];
-    [[views objectAtIndex:index] setFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
+//    [self insertSubview:[views objectAtIndex:index] aboveSubview:pageScrollView];
+//    [[views objectAtIndex:index] setFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
 }
 
-- (void)removeFromSuperview {
+/*- (void)removeFromSuperview {
     [super removeFromSuperview];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
+}*/
 
 - (void)dealloc {
     [pageScrollView release];
