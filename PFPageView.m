@@ -47,7 +47,7 @@
 
 - (void)layoutSubviews {
     if(!pageScrollView.isDragging) {
-    NSLog(@"LS WIDTH => %f", self.frame.size.width);
+
     [self showPageAtIndex:previousPageIndex];
 
     [pageScrollView setFrame:self.bounds];
