@@ -93,11 +93,8 @@
 }
 
 - (void)loadViewAtIndex:(NSInteger)index {
-
-	if (index < 0) return;
-    if (index >= [views count]) return;
     
-    UIView *currentView = [views objectAtIndex:index];
+    UIView *currentView = [self viewForPageIndex:index];
     
     if ((NSNull *)currentView == [NSNull null]) {
         [views replaceObjectAtIndex:index withObject:[self.dataSource pageView:self atIndex:index]];
@@ -112,6 +109,13 @@
     if (currentView.superview == nil) {
 		[pageScrollView addSubview:currentView];
 	}
+}
+
+- (UIView *)viewForPageIndex:(NSInteger)index {
+    if (index < 0) return nil;
+    if (index >= [views count]) return nil;
+
+    return [views objectAtIndex:index];
 }
 
 #pragma mark -

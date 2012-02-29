@@ -21,6 +21,8 @@
 @property (nonatomic, assign) id <PFPageViewDataSource> dataSource;
 @property (nonatomic, assign) id <PFPageViewDelegate> delegate;
 @property (nonatomic, assign) NSInteger pageIndex;
+
+- (UIView *)viewForPageIndex:(NSInteger)index;
 @end
 
 
