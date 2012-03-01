@@ -86,6 +86,9 @@
     UIView *currentView = [views objectAtIndex:index];
     
 	if ((NSNull *)currentView != [NSNull null]) {
+        if([self.delegate respondsToSelector:@selector(pageView:willUnloadView:atIndex:)]) {
+            [self.delegate pageView:self willUnloadView:currentView atIndex:index];
+        }
         [currentView removeFromSuperview];
     }
 	
@@ -130,27 +133,27 @@
     // Unload page -2
     [self unloadScrollViewAtIndex:index - 2];
     
-    [self loadViewAtIndex:index - 1];    
+    [self loadViewAtIndex:index - 1];
     [self loadViewAtIndex:index];
     [self loadViewAtIndex:index + 1];        
     
     [self unloadScrollViewAtIndex:index + 2];
-    
-    // Send didScrollAtIndex 
-    if([self.delegate respondsToSelector:@selector(pageView:didScrollAtIndex:)]) {
-        [self.delegate pageView:self didScrollAtIndex:index];
+
+
+    if([self.delegate respondsToSelector:@selector(viewWillDisappear:atIndex:)]) {
+        UIView *hiddenView = [self viewForPageIndex:index - 1];
+        if(hiddenView) [self.delegate viewWillDisappear:hiddenView atIndex:index - 1];
+        hiddenView = [self viewForPageIndex:index + 1];
+        if(hiddenView) [self.delegate viewWillDisappear:hiddenView atIndex:index + 1];
+    }
+     
+    if([self.delegate respondsToSelector:@selector(viewWillAppear:atIndex:)]) {
+        [self.delegate viewWillAppear:[self viewForPageIndex:index] atIndex:index];
     }
     
     previousPageIndex = index;
 
-//    [self insertSubview:[views objectAtIndex:index] aboveSubview:pageScrollView];
-//    [[views objectAtIndex:index] setFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
 }
-
-/*- (void)removeFromSuperview {
-    [super removeFromSuperview];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}*/
 
 - (void)dealloc {
     [pageScrollView release];

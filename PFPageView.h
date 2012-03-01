@@ -32,5 +32,8 @@
 @end
 
 @protocol PFPageViewDelegate <NSObject>
-- (void)pageView:(PFPageView *)pageView didScrollAtIndex:(NSInteger)index;
+@optional
+- (void)pageView:(PFPageView *)pageView willUnloadView:(UIView *)view atIndex:(NSInteger)index;
+- (void)viewWillDisappear:(UIView *)view atIndex:(NSInteger)index;
+- (void)viewWillAppear:(UIView *)view atIndex:(NSInteger)index;
 @end
