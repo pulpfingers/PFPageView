@@ -47,12 +47,12 @@
 
 - (void)layoutSubviews {
     if(!pageScrollView.isDragging) {
-
-    [self showPageAtIndex:previousPageIndex];
-
-    [pageScrollView setFrame:self.bounds];
-    [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
-    [pageScrollView scrollRectToVisible:CGRectMake(self.bounds.size.width * previousPageIndex, 0.0, self.bounds.size.width, self.bounds.size.height) animated:NO];
+        
+        [self showPageAtIndex:previousPageIndex];        
+        
+        [pageScrollView setFrame:self.bounds];
+        [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
+        [pageScrollView scrollRectToVisible:CGRectMake(self.bounds.size.width * previousPageIndex, 0.0, self.bounds.size.width, self.bounds.size.height) animated:NO];
     }
 }
 
@@ -149,6 +149,18 @@
      
     if([self.delegate respondsToSelector:@selector(viewWillAppear:atIndex:)]) {
         [self.delegate viewWillAppear:[self viewForPageIndex:index] atIndex:index];
+
+        NSInteger newPageCount = [dataSource numberOfPagesInPageView:self];
+
+        if(pageCount != newPageCount) {
+                        
+            for (unsigned i = views.count; i < newPageCount; i++) {
+                [views addObject:[NSNull null]];
+            }    
+            
+            pageCount = newPageCount;
+            [pageScrollView setContentSize:CGSizeMake(pageCount * self.bounds.size.width, self.bounds.size.height)];
+        }
     }
     
     previousPageIndex = index;
