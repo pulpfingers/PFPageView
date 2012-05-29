@@ -141,10 +141,10 @@
 
 
     if([self.delegate respondsToSelector:@selector(viewWillDisappear:atIndex:)]) {
-        UIView *hiddenView = [self viewForPageIndex:index - 1];
-        if(hiddenView) [self.delegate viewWillDisappear:hiddenView atIndex:index - 1];
-        hiddenView = [self viewForPageIndex:index + 1];
-        if(hiddenView) [self.delegate viewWillDisappear:hiddenView atIndex:index + 1];
+        UIView *hiddenView = [self viewForPageIndex:index - 2];
+        if(hiddenView) [self.delegate viewWillDisappear:hiddenView atIndex:index - 2];
+        hiddenView = [self viewForPageIndex:index + 2];
+        if(hiddenView) [self.delegate viewWillDisappear:hiddenView atIndex:index + 2];
     }
      
     if([self.delegate respondsToSelector:@selector(viewWillAppear:atIndex:)]) {
