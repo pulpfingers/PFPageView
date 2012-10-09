@@ -167,10 +167,4 @@
 
 }
 
-- (void)dealloc {
-    [pageScrollView release];
-    [views release];
-    [super dealloc];
-}
-
 @end
