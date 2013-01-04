@@ -37,9 +37,6 @@
         [pageScrollView setShowsVerticalScrollIndicator:NO];
         [self addSubview:pageScrollView];
         
-        //[self setBackgroundColor:[UIColor redColor]];
-        
-        //[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didRotate) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
         previousPageIndex = 0;
     }
     return self;
