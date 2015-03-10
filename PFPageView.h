@@ -28,7 +28,7 @@
 
 @protocol PFPageViewDataSource <NSObject>
 - (NSInteger)numberOfPagesInPageView:(PFPageView *)pageView;
-- (UIView *)pageView:(PFPageView *)pageView atIndex:(NSInteger)index;
+- (UIView *)viewForPageView:(PFPageView *)pageView atIndex:(NSInteger)index;
 @end
 
 @protocol PFPageViewDelegate <NSObject>

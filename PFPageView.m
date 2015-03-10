@@ -28,18 +28,28 @@
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
-        views = [[NSMutableArray alloc] init];
-        pageScrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
-        [pageScrollView setPagingEnabled:YES];
-        [pageScrollView setDelegate:self];
-        [pageScrollView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
-        [pageScrollView setShowsHorizontalScrollIndicator:NO];
-        [pageScrollView setShowsVerticalScrollIndicator:NO];
-        [self addSubview:pageScrollView];
-        
-        previousPageIndex = 0;
+        [self initLayout];
     }
     return self;
+}
+
+- (void)awakeFromNib
+{
+    [self initLayout];
+}
+
+- (void)initLayout
+{
+    views = [[NSMutableArray alloc] init];
+    pageScrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
+    [pageScrollView setPagingEnabled:YES];
+    [pageScrollView setDelegate:self];
+    [pageScrollView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
+    [pageScrollView setShowsHorizontalScrollIndicator:NO];
+    [pageScrollView setShowsVerticalScrollIndicator:NO];
+    [self addSubview:pageScrollView];
+    
+    previousPageIndex = 0;
 }
 
 - (void)layoutSubviews {
@@ -97,7 +107,7 @@
     UIView *currentView = [self viewForPageIndex:index];
     
     if ((NSNull *)currentView == [NSNull null]) {
-        [views replaceObjectAtIndex:index withObject:[self.dataSource pageView:self atIndex:index]];
+        [views replaceObjectAtIndex:index withObject:[self.dataSource viewForPageView:self atIndex:index]];
         currentView = [views objectAtIndex:index];
     }
     
@@ -122,7 +132,7 @@
 #pragma ScrollView delegate methods
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {    
-    int index = [self pageIndex];    
+    NSInteger index = [self pageIndex];
     [self showPageAtIndex:index];
 }
 
@@ -151,7 +161,7 @@
 
         if(pageCount != newPageCount) {
                         
-            for (unsigned i = views.count; i < newPageCount; i++) {
+            for (NSUInteger i = views.count; i < newPageCount; i++) {
                 [views addObject:[NSNull null]];
             }    
             
